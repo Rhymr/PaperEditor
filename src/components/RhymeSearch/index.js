@@ -202,7 +202,7 @@ export default class RhymeSearch extends DesktopWindow {
     container.className = 'search-wrap';
     container.innerHTML = `
       <div class="search-header">
-        <img src="/assets/images/desktop-icons/website.png" alt="Rhyme Search" class="search-icon" />
+        <img src="assets/images/desktop-icons/website.png" alt="Rhyme Search" class="search-icon" />
         <form id="search-form" class="search-bar" autocomplete="off">
           <input id="search-input" class="search-input" type="text" placeholder="Type a word to search for rhymes" />
           <svg class="search-icon-btn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -410,7 +410,7 @@ export default class RhymeSearch extends DesktopWindow {
     if (this._wordsList) return this._wordsList;
     if (this._wordsListLoading) return this._wordsListLoading;
 
-    const tryPaths = ['/words.json', './words.json'];
+    const tryPaths = ['words.json', './words.json'];
     this._wordsListLoading = (async () => {
       for (const p of tryPaths) {
         try {

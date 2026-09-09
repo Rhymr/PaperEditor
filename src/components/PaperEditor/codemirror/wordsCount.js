@@ -6,7 +6,7 @@ export let englishWords = [];
  *
  */
 export function fetchWordList () {
-  fetch('/words.json')
+  fetch('words.json')
     .then(response => response.json())
     .then(data => {
       englishWords = data;

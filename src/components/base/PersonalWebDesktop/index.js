@@ -236,13 +236,13 @@ export default class PersonalWebDesktop extends HTMLElement {
           @media (min-device-width: 1920px) {
             background-repeat: no-repeat;
             background-size: cover;
-            background-image: url("/assets/images/paper_Hd.jpg");
+            background-image: url("assets/images/paper_Hd.jpg");
           }
 
           @media (max-device-width: 1919px) {
             background-repeat: no-repeat;
             background-size: cover;
-            background-image: url("/assets/images/paper_Hd.jpg");
+            background-image: url("assets/images/paper_Hd.jpg");
           }
         }
       </style>
