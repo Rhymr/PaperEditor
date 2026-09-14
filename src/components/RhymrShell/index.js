@@ -1,3 +1,5 @@
+import { createEditor } from '../PaperEditor/editor.js';
+
 /**
  * @class RhymrShell
  * @classdesc Root shell for the web preview: a single-window IDE layout
@@ -13,6 +15,15 @@ export default class RhymrShell extends HTMLElement {
   connectedCallback () {
     this.render();
     this.addEventListeners();
+    this.editorHost.innerHTML = '';
+    this.editorView = createEditor(this.editorHost);
+  }
+
+  disconnectedCallback () {
+    if (this.editorView) {
+      this.editorView.destroy();
+      this.editorView = null;
+    }
   }
 
   render () {
@@ -139,13 +150,6 @@ export default class RhymrShell extends HTMLElement {
           min-height: 0;
           overflow: hidden;
           background: var(--bg);
-        }
-
-        .editor-host__placeholder {
-          margin: 1rem;
-          font-family: var(--mono-font-family);
-          font-size: .82rem;
-          color: var(--text-muted);
         }
 
         .dock {

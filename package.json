@@ -38,15 +38,11 @@
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.19.1",
-    "@codemirror/basic-setup": "^0.20.0",
     "@codemirror/commands": "^6.10.0",
-    "@codemirror/highlight": "^0.19.8",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.38.6",
     "codemirror": "^6.0.2",
     "double-metaphone": "^2.0.1",
-    "openai": "^4.85.4",
-    "thememirror": "^2.0.1",
     "cmu-pronouncing-dictionary": "^3.0.0"
   }
 }
