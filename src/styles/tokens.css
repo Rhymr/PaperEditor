@@ -27,6 +27,35 @@
   /* grey applied to rhyme groups other than the one being hovered */
   --rhyme-dim: #b0b0b0;
 
+  /* 24-hue cyclic rhyme-group text-colour palette, verbatim from
+     rhyme/highlight.rs RHYME_PALETTE_LIGHT (deeper/saturated, for the
+     IntelliJ-Light editor background). Group N (0-indexed, wrapping past
+     24) gets --rhyme-N; see rhymeHighlighter.js. */
+  --rhyme-0: #a32929;
+  --rhyme-1: #a34729;
+  --rhyme-2: #a36629;
+  --rhyme-3: #a38529;
+  --rhyme-4: #a3a329;
+  --rhyme-5: #85a329;
+  --rhyme-6: #66a329;
+  --rhyme-7: #47a329;
+  --rhyme-8: #29a329;
+  --rhyme-9: #29a347;
+  --rhyme-10: #29a366;
+  --rhyme-11: #29a385;
+  --rhyme-12: #29a3a3;
+  --rhyme-13: #2985a3;
+  --rhyme-14: #2966a3;
+  --rhyme-15: #2947a3;
+  --rhyme-16: #2929a3;
+  --rhyme-17: #4729a3;
+  --rhyme-18: #6629a3;
+  --rhyme-19: #8529a3;
+  --rhyme-20: #a329a3;
+  --rhyme-21: #a32985;
+  --rhyme-22: #a32966;
+  --rhyme-23: #a32947;
+
   --radius: 2px;
 
   --ui-font-family: "SF Pro Text", "Helvetica Neue", "Segoe UI", Cantarell, "Ubuntu", "Noto Sans", sans-serif;
@@ -53,6 +82,32 @@
     --on-accent: #ffffff;
 
     --rhyme-dim: #5c5c5c;
+
+    /* RHYME_PALETTE_DARK — bright/pastel, for the Darcula background. */
+    --rhyme-0: #d57b7b;
+    --rhyme-1: #d5927b;
+    --rhyme-2: #d5a87b;
+    --rhyme-3: #d5bf7b;
+    --rhyme-4: #d5d57b;
+    --rhyme-5: #bfd57b;
+    --rhyme-6: #a8d57b;
+    --rhyme-7: #92d57b;
+    --rhyme-8: #7bd57b;
+    --rhyme-9: #7bd592;
+    --rhyme-10: #7bd5a8;
+    --rhyme-11: #7bd5bf;
+    --rhyme-12: #7bd5d5;
+    --rhyme-13: #7bbfd5;
+    --rhyme-14: #7ba8d5;
+    --rhyme-15: #7b92d5;
+    --rhyme-16: #7b7bd5;
+    --rhyme-17: #927bd5;
+    --rhyme-18: #a87bd5;
+    --rhyme-19: #bf7bd5;
+    --rhyme-20: #d57bd5;
+    --rhyme-21: #d57bbf;
+    --rhyme-22: #d57ba8;
+    --rhyme-23: #d57b92;
   }
 }
 
@@ -75,6 +130,30 @@
   --on-accent: #ffffff;
 
   --rhyme-dim: #5c5c5c;
+  --rhyme-0: #d57b7b;
+  --rhyme-1: #d5927b;
+  --rhyme-2: #d5a87b;
+  --rhyme-3: #d5bf7b;
+  --rhyme-4: #d5d57b;
+  --rhyme-5: #bfd57b;
+  --rhyme-6: #a8d57b;
+  --rhyme-7: #92d57b;
+  --rhyme-8: #7bd57b;
+  --rhyme-9: #7bd592;
+  --rhyme-10: #7bd5a8;
+  --rhyme-11: #7bd5bf;
+  --rhyme-12: #7bd5d5;
+  --rhyme-13: #7bbfd5;
+  --rhyme-14: #7ba8d5;
+  --rhyme-15: #7b92d5;
+  --rhyme-16: #7b7bd5;
+  --rhyme-17: #927bd5;
+  --rhyme-18: #a87bd5;
+  --rhyme-19: #bf7bd5;
+  --rhyme-20: #d57bd5;
+  --rhyme-21: #d57bbf;
+  --rhyme-22: #d57ba8;
+  --rhyme-23: #d57b92;
 }
 
 html,

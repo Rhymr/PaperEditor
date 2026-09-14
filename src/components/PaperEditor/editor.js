@@ -5,7 +5,7 @@ import { autocompletion } from '@codemirror/autocomplete';
 import { rhymrEditorTheme } from './theme.js';
 import { syllableCounter, syllableCountCache } from './codemirror/syllableGutter.js';
 import { englishCompletions } from './codemirror/completions.js';
-import { phoneticRhymeHighlighter } from './codemirror/rhymeHighlighter.js';
+import { phoneticRhymeHighlighter, rhymeHighlightTheme } from './codemirror/rhymeHighlighter.js';
 
 const SAMPLE_DOC = `Stars are burning through the night,
 Chasing shadows toward the light,
@@ -39,6 +39,7 @@ export function createEditor (host) {
           syllableCountCache.clear();
         }
       }),
+      rhymeHighlightTheme,
       phoneticRhymeHighlighter
     ]
   });

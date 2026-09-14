@@ -1,8 +1,13 @@
-// src/phoneticRhymeHighlighter.js
-// CodeMirror 6 extension: Highlight words that rhyme (phonetically) with the same color
-// Each new rhyme group gets a new color. E.g. cat/hat/fat = color1, dog/fog/bog = color2
+// CodeMirror 6 extension: colour words that rhyme (phonetically) with the
+// same rhyme-group colour. Presentation follows the real Rhymr app
+// (rhyme/highlight.rs): each rhyme group is coloured by *text* colour, the
+// way an IDE colours a keyword vs a string, rather than a highlighter-pen
+// background fill — cycled across a 24-hue palette (var(--rhyme-0..23) in
+// tokens.css) in the order groups first appear in the document, wrapping
+// past 24. Hovering a group dims every other group to var(--rhyme-dim),
+// also matching the real app's interaction.
 
-import { Decoration, ViewPlugin } from '@codemirror/view';
+import { Decoration, EditorView, ViewPlugin } from '@codemirror/view';
 import { RangeSetBuilder } from '@codemirror/state';
 import { doubleMetaphone } from 'double-metaphone';
 
@@ -18,48 +23,28 @@ async function ensureCmuDictLoaded () {
   }
 }
 
-// Simple color palette for rhyme groups
-const RHYME_COLORS = [
-  '#ffb347', // orange
-  '#77dd77', // green
-  '#aec6cf', // blue
-  '#f49ac2', // pink
-  '#b39eb5', // purple
-  '#fff68f', // yellow
-  '#ff6961', // red
-  '#03c03c', // teal
-  '#779ecb', // light blue
-  '#966fd6', // violet
-  '#f7cac9', // light pink
-  '#cfcfc4', // light gray
-  '#b284be', // lavender
-  '#c23b22', // brick red
-  '#03a89e', // turquoise
-  '#fdfd96', // pale yellow
-  '#836953', // taupe
-  '#cb99c9', // mauve
-  '#ffb7ce', // pastel pink
-  '#b0e0e6' // powder blue
-];
+// Distinct hues cycled across rhyme groups before the palette wraps —
+// matches RhymeTuning::hue_count's default in the real app.
+const HUE_COUNT = 24;
+
+/** CodeMirror theme for the rhyme-highlight decorations: a `.rhyme-hue-N`
+ * class per palette entry, plus the hover-dim override. No background
+ * fill and no forced font-weight — colour alone carries the grouping. */
+export const rhymeHighlightTheme = EditorView.theme((() => {
+  const rules = {
+    '.rhyme-highlight': { transition: 'color 100ms ease' }
+  };
+  for (let i = 0; i < HUE_COUNT; i++) {
+    rules[`.rhyme-hue-${i}`] = { color: `var(--rhyme-${i})` };
+  }
+  rules['.rhyme-highlight.rhyme-dim'] = { color: 'var(--rhyme-dim)' };
+  return rules;
+})());
 
 // --- PHONETIC/RHYME UTILS ---
-// Improved: Group words by similar phonetic ending (not just exact last 3 letters)
-// This is a naive approach, but works for many English rhymes.
-/**
- *
- * @param word
- */
-function getRhymeKey (word) {
-  word = word.toLowerCase().replace(/[^a-z]/g, '');
-  if (word.length <= 3) return word;
-  // Use last vowel and everything after as a naive rhyme key
-  const match = word.match(/[aeiouy][a-z]*$/);
-  return match ? match[0] : word.slice(-3);
-}
 
-// Utility: Normalize word endings for rhyme (strip s, es, ed, ing)
+// Normalize word endings for rhyme (strip s, es, ed, ing)
 /**
- *
  * @param word
  */
 function normalizeEnding (word) {
@@ -68,9 +53,8 @@ function normalizeEnding (word) {
     .replace(/[^a-zA-Zy]/g, '');
 }
 
-// Utility: Collapse similar phonemes (e.g., S/Z, D/T)
+// Collapse similar phonemes (e.g., S/Z, D/T)
 /**
- *
  * @param phoneme
  */
 function collapsePhoneme (phoneme) {
@@ -82,100 +66,9 @@ function collapsePhoneme (phoneme) {
     .replace(/G/g, 'K');
 }
 
-// Helper: get the rhyme part from a CMUdict phoneme array
-// Enhanced: include last stressed vowel and up to 2 phonemes before and after for near rhymes
-/**
- *
- * @param phonemes
- */
-function getRhymeParts (phonemes) {
-  // Find the last stressed vowel (1 or 2)
-  let lastStress = -1;
-  for (let i = phonemes.length - 1; i >= 0; i--) {
-    if (/\d/.test(phonemes[i])) {
-      lastStress = i;
-      break;
-    }
-  }
-  // If found, return slices for exact and near rhymes
-  if (lastStress !== -1) {
-    // Exact rhyme: from last stressed vowel to end
-    const exact = phonemes.slice(lastStress).join(' ');
-    // Near rhyme: include one before and one after if possible
-    const near = phonemes.slice(Math.max(0, lastStress - 1), lastStress + 3).join(' ');
-    // Fallback: last 2 and last 3 phonemes
-    const last2 = phonemes.slice(-2).join(' ');
-    const last3 = phonemes.slice(-3).join(' ');
-    return [exact, near, last2, last3];
-  }
-  // Fallback: last 2 and last 3 phonemes
-  const last2 = phonemes.slice(-2).join(' ');
-  const last3 = phonemes.slice(-3).join(' ');
-  return [last2, last3];
-}
-
-// Helper: get the rhyme part from a CMUdict phoneme array, expanded for syllable coloring
-/**
- *
- * @param phonemes
- */
-function getRhymeSyllableParts (phonemes) {
-  // Find the last vowel (including Y at end)
-  let lastVowel = -1;
-  for (let i = phonemes.length - 1; i >= 0; i--) {
-    // Remove stress digits for vowel check
-    const ph = phonemes[i].replace(/\d/, '');
-    if (/[AEIOUY]/.test(ph)) {
-      lastVowel = i;
-      break;
-    }
-  }
-  if (lastVowel !== -1) {
-    // Return all syllable slices from last vowel to end, collapse phonemes for better matching
-    // Also collapse the first consonant after the vowel for more robust matching (e.g. dog/bog/fog)
-    let rhymePhonemes = phonemes.slice(lastVowel).map(collapsePhoneme);
-    // Remove leading consonant if present (e.g. for "dog"/"bog"/"fog")
-    if (rhymePhonemes.length > 1 && !/[AEIOUY]/.test(rhymePhonemes[0])) {
-      rhymePhonemes = rhymePhonemes.slice(1);
-    }
-    return [rhymePhonemes.join(' ')];
-  }
-  // Fallback: last 2 phonemes, collapsed
-  return [phonemes.slice(-2).map(collapsePhoneme).join(' ')];
-}
-
-// Get rhyme keys and syllable region for coloring
-/**
- *
- * @param word
- */
-function getPhoneticRhymeKeyAndRegion (word) {
-  const base = normalizeEnding(word.toLowerCase());
-  let lookup = cmuDict && cmuDict[base];
-  if (!lookup && base.endsWith('y')) {
-    // Treat y as vowel at end
-    lookup = cmuDict ? (cmuDict[base.slice(0, -1) + 'ee'] || cmuDict[base]) : null;
-  }
-  if (lookup) {
-    const phonemes = lookup.split(' ');
-    const rhymeParts = getRhymeSyllableParts(phonemes);
-    // Find the region in the word that corresponds to the rhyme part
-    // Heuristic: highlight from the last vowel in the word to the end
-    const vowelMatch = word.match(/[aeiouy][^aeiouy]*$/i);
-    const regionStart = vowelMatch ? word.length - vowelMatch[0].length : Math.max(0, word.length - 2);
-    return { rhymeKeys: rhymeParts, region: { start: regionStart, end: word.length } };
-  } else {
-    // Fallback: use double metaphone on ending
-    const metaphones = doubleMetaphone(base);
-    // Use last 3 letters as region for highlighting
-    return { rhymeKeys: [metaphones[0], metaphones[1]].filter(Boolean), region: { start: Math.max(0, word.length - 3), end: word.length } };
-  }
-}
-
 // --- SYLLABLE SPLITTING AND PHONEME EXTRACTION ---
 // Split CMUdict phoneme string into syllables using stress markers (0, 1, 2)
 /**
- *
  * @param phonemes
  */
 function splitPhonemesIntoSyllables (phonemes) {
@@ -194,7 +87,6 @@ function splitPhonemesIntoSyllables (phonemes) {
 
 // Get all words and their positions in the document
 /**
- *
  * @param docText
  */
 function getWordsWithPositions (docText) {
@@ -210,7 +102,6 @@ function getWordsWithPositions (docText) {
 // --- Syllable-to-Text Alignment: Map phoneme syllables to word substrings ---
 // Returns [{from, to, text, phonemes, key}] for each syllable in the word
 /**
- *
  * @param word
  * @param from
  * @param to
@@ -219,8 +110,6 @@ function getWordsWithPositions (docText) {
 function alignSyllablesToText (word, from, to, syllables) {
   // Greedy alignment: for each syllable, try to match the largest substring containing all its vowels
   const result = [];
-  let charIdx = 0;
-  const lastEnd = 0;
   const lowerWord = word.toLowerCase();
   // Find all vowel positions in the word
   const vowels = /[aeiouy]/g;
@@ -251,6 +140,7 @@ function alignSyllablesToText (word, from, to, syllables) {
     return result;
   }
   // Fallback: even split
+  let charIdx = 0;
   const partLen = Math.floor(word.length / syllables.length);
   for (let i = 0; i < syllables.length; i++) {
     const start = from + charIdx;
@@ -268,7 +158,6 @@ function alignSyllablesToText (word, from, to, syllables) {
 }
 
 /**
- *
  * @param doc
  */
 function buildRhymeDecorations (doc) {
@@ -286,10 +175,23 @@ function buildRhymeDecorations (doc) {
     if (lookup) {
       const phonemes = lookup.split(' ');
       const syllables = splitPhonemesIntoSyllables(phonemes);
-      // Use improved alignment
       const wordSyllables = alignSyllablesToText(word, from, to, syllables);
       for (const syl of wordSyllables) {
         syllableInstances.push(syl);
+      }
+    } else {
+      // Fallback: double metaphone on the word ending, highlighting the
+      // last few letters (same region heuristic as the CMU path uses for
+      // an unrecognized-word rhyme key).
+      const metaphones = doubleMetaphone(base).filter(Boolean);
+      if (metaphones.length) {
+        const start = Math.max(0, word.length - 3);
+        syllableInstances.push({
+          text: word.slice(start),
+          from: from + start,
+          to,
+          key: metaphones.join(' ')
+        });
       }
     }
   }
@@ -299,24 +201,25 @@ function buildRhymeDecorations (doc) {
     if (!rhymeGroups.has(syl.key)) rhymeGroups.set(syl.key, []);
     rhymeGroups.get(syl.key).push(syl);
   }
-  // Step 3: Assign color to each group with >1 member
-  const rhymeColorMap = new Map();
-  let colorIdx = 0;
+  // Step 3: Assign a hue (0..23, wrapping) to each group with >1 member,
+  // in the order the group first appears in the document.
+  const rhymeHueMap = new Map();
+  let hueIdx = 0;
   for (const [key, group] of rhymeGroups.entries()) {
     if (group.length > 1) {
-      rhymeColorMap.set(key, RHYME_COLORS[colorIdx % RHYME_COLORS.length]);
-      colorIdx++;
+      rhymeHueMap.set(key, hueIdx % HUE_COUNT);
+      hueIdx++;
     }
   }
   // Step 4: Highlight all matching syllables in all words
   for (const syl of syllableInstances) {
-    const color = rhymeColorMap.get(syl.key);
-    if (color) {
+    const hue = rhymeHueMap.get(syl.key);
+    if (hue !== undefined) {
       builder.add(syl.from, syl.to, Decoration.mark({
-        class: 'rhyme-highlight',
+        class: `rhyme-highlight rhyme-hue-${hue}`,
         attributes: {
-          style: `background: ${color}; border-radius: 3px; padding: 0 2px;`,
-          title: `Phonemes: ${syl.key}`
+          'data-rhyme-group': syl.key,
+          title: `Rhymes with: ${syl.key}`
         }
       }));
     }
@@ -324,13 +227,46 @@ function buildRhymeDecorations (doc) {
   return builder.finish();
 }
 
+/**
+ * @param root
+ * @param key
+ */
+function setDimmed (root, key) {
+  root.querySelectorAll('.rhyme-highlight').forEach(node => {
+    node.classList.toggle('rhyme-dim', node.getAttribute('data-rhyme-group') !== key);
+  });
+}
+
+/**
+ * @param root
+ */
+function clearDimmed (root) {
+  root.querySelectorAll('.rhyme-highlight.rhyme-dim').forEach(node => {
+    node.classList.remove('rhyme-dim');
+  });
+}
+
 export const phoneticRhymeHighlighter = ViewPlugin.fromClass(
   class {
     constructor (view) {
+      this.view = view;
       this.decorations = buildRhymeDecorations(view.state.doc);
+
+      this.onMouseOver = (event) => {
+        const el = event.target.closest && event.target.closest('.rhyme-highlight');
+        if (!el) return;
+        setDimmed(view.contentDOM, el.getAttribute('data-rhyme-group'));
+      };
+      this.onMouseOut = (event) => {
+        const el = event.target.closest && event.target.closest('.rhyme-highlight');
+        if (!el) return;
+        clearDimmed(view.contentDOM);
+      };
+      view.contentDOM.addEventListener('mouseover', this.onMouseOver);
+      view.contentDOM.addEventListener('mouseout', this.onMouseOut);
+
       // Fire-and-forget load of CMU dict; remeasure once loaded
       ensureCmuDictLoaded().then(() => {
-        // Recompute with CMU data if available
         this.decorations = buildRhymeDecorations(view.state.doc);
         view.requestMeasure?.({});
       });
@@ -338,6 +274,11 @@ export const phoneticRhymeHighlighter = ViewPlugin.fromClass(
 
     update (update) {
       if (update.docChanged) { this.decorations = buildRhymeDecorations(update.state.doc); }
+    }
+
+    destroy () {
+      this.view.contentDOM.removeEventListener('mouseover', this.onMouseOver);
+      this.view.contentDOM.removeEventListener('mouseout', this.onMouseOut);
     }
   },
   {
