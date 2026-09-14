@@ -17,6 +17,8 @@ export default class RhymrShell extends HTMLElement {
     this.addEventListeners();
     this.editorHost.innerHTML = '';
     this.editorView = createEditor(this.editorHost);
+    this.dock.appendChild(document.createElement('rhyme-search-panel'));
+    this.toggleDock(this.dockOpen);
   }
 
   disconnectedCallback () {
