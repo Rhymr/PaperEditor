@@ -1,0 +1,104 @@
+/* ================================================================= */
+/*  Palette — ported from Rhymr's src/css.rs PALETTE and              */
+/*  src/rhyme/highlight.rs (rhymr-win-mac), same condensed token set  */
+/*  the main Rhymr site uses in its own index.html <style>.           */
+/*  Bare :root = IntelliJ Light. prefers-color-scheme:dark / an       */
+/*  explicit [data-theme] = Darcula.                                  */
+/* ================================================================= */
+:root {
+  color-scheme: light;
+
+  --bg: #ffffff;
+  --panel: #ececec;
+  --panel-2: #f0f0f0; /* also the editor gutter background */
+  --border: #c8c8c8;
+  --border-strong: #a6a6a6;
+
+  --text: #2b2b2b;
+  --text-bright: #101114;
+  --text-muted: #5c636b;
+  --syllable: #3a8a2e;
+
+  --accent: #2f6db0;
+  --accent-hover: #255c98;
+  --selection: #2675bf;
+  --on-accent: #ffffff;
+
+  /* grey applied to rhyme groups other than the one being hovered */
+  --rhyme-dim: #b0b0b0;
+
+  --radius: 2px;
+
+  --ui-font-family: "SF Pro Text", "Helvetica Neue", "Segoe UI", Cantarell, "Ubuntu", "Noto Sans", sans-serif;
+  --mono-font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #2b2b2b;
+    --panel: #3c3f41;
+    --panel-2: #313335;
+    --border: #4c4c4c;
+    --border-strong: #5e6060;
+
+    --text: #a9b7c6;
+    --text-bright: #dfe4ea;
+    --text-muted: #949ea8;
+    --syllable: #6cbf5a;
+
+    --accent: #3574c4;
+    --accent-hover: #4a88c7;
+    --selection: #2f65ca;
+    --on-accent: #ffffff;
+
+    --rhyme-dim: #5c5c5c;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #2b2b2b;
+  --panel: #3c3f41;
+  --panel-2: #313335;
+  --border: #4c4c4c;
+  --border-strong: #5e6060;
+
+  --text: #a9b7c6;
+  --text-bright: #dfe4ea;
+  --text-muted: #949ea8;
+  --syllable: #6cbf5a;
+
+  --accent: #3574c4;
+  --accent-hover: #4a88c7;
+  --selection: #2f65ca;
+  --on-accent: #ffffff;
+
+  --rhyme-dim: #5c5c5c;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--ui-font-family);
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("./fonts/JetBrainsMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("./fonts/JetBrainsMono-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("./fonts/JetBrainsMono-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
