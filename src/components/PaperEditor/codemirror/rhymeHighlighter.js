@@ -289,7 +289,7 @@ export const phoneticRhymeHighlighter = ViewPlugin.fromClass(
       // Fire-and-forget load of CMU dict; remeasure once loaded
       ensureCmuDictLoaded().then(() => {
         this.decorations = buildRhymeDecorations(view.state.doc);
-        view.requestMeasure?.({});
+        view.requestMeasure();
       });
     }
 
