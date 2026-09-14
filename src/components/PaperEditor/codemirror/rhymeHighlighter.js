@@ -27,6 +27,23 @@ async function ensureCmuDictLoaded () {
 // matches RhymeTuning::hue_count's default in the real app.
 const HUE_COUNT = 24;
 
+// Common function/filler words excluded from rhyme matching, ported from
+// rhyme/highlight.rs STOPWORDS — without this, short high-frequency words
+// (the, of, is, and, ...) coincidentally share a trailing sound often
+// enough to swamp genuine rhymes in colour noise.
+const STOPWORDS = new Set([
+  'a', 'an', 'the', 'of', 'in', 'on', 'at', 'to', 'is', 'it', 'if', 'as', 'so', 'no', 'do', 'be',
+  'by', 'or', 'up', 'we', 'he', 'she', 'i', 'my', 'me', 'you', 'your', 'am', 'are', 'was',
+  'were', 'been', 'being', 'and', 'but', 'for', 'nor', 'yet', 'with', 'from', 'into', 'onto',
+  'than', 'then', 'this', 'that', 'these', 'those', 'there', 'their', 'they', 'them', 'its',
+  'his', 'her', 'him', 'our', 'us', 'oh', 'ah', 'uh', 'well', 'just', 'not', 'all', 'any', 'can',
+  'could', 'would', 'should', 'will', 'shall', 'may', 'might', 'must', 'did', 'does', 'done',
+  'had', 'has', 'have', 'let', 'get', 'got', 'go', 'goes', 'one', 'two', 'out', 'off', 'down',
+  'over', 'under', 'again', 'also', 'too', 'very', 'much', 'some', 'such', 'same', 'own', 'each',
+  'every', 'both', 'few', 'more', 'most', 'other', 'only', 'which', 'who', 'whom', 'what',
+  'when', 'where', 'why', 'how'
+]);
+
 /** CodeMirror theme for the rhyme-highlight decorations: a `.rhyme-hue-N`
  * class per palette entry, plus the hover-dim override. No background
  * fill and no forced font-weight — colour alone carries the grouping. */
@@ -170,6 +187,7 @@ function buildRhymeDecorations (doc) {
   // Step 1: Collect all syllables and their positions
   const syllableInstances = [];
   for (const { word, from, to } of words) {
+    if (STOPWORDS.has(word.toLowerCase())) continue;
     const base = normalizeEnding(word.toLowerCase());
     let lookup = cmuDict && cmuDict[base];
     if (!lookup && base.endsWith('y')) {
