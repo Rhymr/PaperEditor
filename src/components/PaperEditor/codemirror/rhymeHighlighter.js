@@ -32,7 +32,10 @@ const HUE_COUNT = 24;
  * fill and no forced font-weight — colour alone carries the grouping. */
 export const rhymeHighlightTheme = EditorView.theme((() => {
   const rules = {
-    '.rhyme-highlight': { transition: 'color 100ms ease' }
+    '.rhyme-highlight': { transition: 'color 100ms ease' },
+    '@media (prefers-reduced-motion: reduce)': {
+      '.rhyme-highlight': { transitionDuration: '.001ms' }
+    }
   };
   for (let i = 0; i < HUE_COUNT; i++) {
     rules[`.rhyme-hue-${i}`] = { color: `var(--rhyme-${i})` };

@@ -1,9 +1,7 @@
-import { showPanel } from '@codemirror/view';
-
 export let englishWords = [];
 
 /**
- *
+ * @returns {void}
  */
 export function fetchWordList () {
   fetch('words.json')
@@ -17,10 +15,10 @@ export function fetchWordList () {
 }
 
 /**
- *
- * @param doc
+ * @param {import('@codemirror/state').Text} doc
+ * @returns {number} Total word count across the whole document.
  */
-export function countTotalDocumentWords (doc) {
+export function countWords (doc) {
   let count = 0; const iter = doc.iter();
   while (!iter.next().done) {
     let inWord = false;
@@ -30,27 +28,5 @@ export function countTotalDocumentWords (doc) {
       inWord = word;
     }
   }
-  return `Word Count: ${count}`;
-}
-
-/**
- *
- */
-export function wordCounter () {
-  /**
-   *
-   * @param view
-   */
-  function wordCountPanel (view) {
-    const dom = document.createElement('div');
-    dom.id = 'word-count';
-    dom.textContent = countTotalDocumentWords(view.state.doc);
-    return {
-      dom,
-      update (update) {
-        if (update.docChanged) { dom.textContent = countTotalDocumentWords(update.state.doc); }
-      }
-    };
-  }
-  return showPanel.of(wordCountPanel);
+  return count;
 }

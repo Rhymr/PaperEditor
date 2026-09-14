@@ -16,7 +16,7 @@ export default class RhymrShell extends HTMLElement {
     this.render();
     this.addEventListeners();
     this.editorHost.innerHTML = '';
-    this.editorView = createEditor(this.editorHost);
+    this.editorView = createEditor(this.editorHost, { onStats: (stats) => this.updateStatusBar(stats) });
     this.dock.appendChild(document.createElement('rhyme-search-panel'));
     this.toggleDock(this.dockOpen);
   }
@@ -79,6 +79,12 @@ export default class RhymrShell extends HTMLElement {
     this.dockOpen = open;
     this.dock.classList.toggle('dock--open', open);
     this.dockToggle.setAttribute('aria-pressed', String(open));
+  }
+
+  updateStatusBar ({ words, syllables, line, col }) {
+    this.statusWords.textContent = `${words} word${words === 1 ? '' : 's'}`;
+    this.statusSyllables.textContent = `${syllables} syllable${syllables === 1 ? '' : 's'}`;
+    this.statusCursor.textContent = `${line}:${col}`;
   }
 
   getStyles () {
